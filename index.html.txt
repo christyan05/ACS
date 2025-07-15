@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Estudos - Agente Comunitário de Saúde</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .topic-list input[type="checkbox"] {
+            display: none;
+        }
+        .topic-list label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            padding: 12px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 8px;
+        }
+        .topic-list input[type="checkbox"]:checked + label {
+            background-color: #d1fae5;
+            color: #065f46;
+            text-decoration: line-through;
+        }
+        .topic-list input[type="checkbox"]:checked + label .checkbox-icon {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .topic-list input[type="checkbox"]:checked + label .checkbox-icon svg {
+            display: block;
+        }
+        .checkbox-icon {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .checkbox-icon svg {
+            display: none;
+            color: white;
+        }
+        .progress-bar-container {
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            height: 20px;
+            width: 100%;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #34d399, #10b981);
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.5s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 24px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s;
+        }
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+        @keyframes slideIn { from {transform: translateY(-20px);} to {transform: translateY(0);} }
+        .card {
+            perspective: 1000px;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card.is-flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .card-front {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            color: white;
+        }
+        .card-back {
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+            color: #1f2937;
+            transform: rotateY(180deg);
+        }
+        .post-it {
+            background: linear-gradient(135deg, #fef08a, #facc15);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: rotate(-2deg);
+            transition: transform 0.2s;
+        }
+        .post-it:hover {
+            transform: rotate(0deg) scale(1.05);
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-6 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Cabeçalho e Progresso -->
+        <header class="text-center mb-8 bg-white p-6 rounded-xl shadow-lg">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800">Plano de Estudos para ACS 🚀</h1>
+            <p class="text-gray-600 mt-2">Agente Comunitário de Saúde</p>
+            <div class="mt-6">
+                <h3 class="font-semibold text-lg text-gray-700 mb-2">Progresso Geral</h3>
+                <div class="progress-bar-container">
+                    <div id="progressBar" class="progress-bar">0%</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Ferramentas de Estudo -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <button id="flashcardBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                Criar/Ver Flashcards
+            </button>
+            <button id="notesBtn" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">
+                Lembretes / Post-its
+            </button>
+        </div>
+
+        <!-- Conteúdo Programático -->
+        <main class="space-y-8">
+            <!-- Português -->
+            <section id="portugues" class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-blue-500 pb-2">📚 Língua Portuguesa</h2>
+                <div class="topic-list space-y-2">
+                    <!-- Gerado por JS -->
+                </div>
+            </section>
+
+            <!-- Informática -->
+            <section id="informatica" class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-green-500 pb-2">💻 Informática Básica</h2>
+                <div class="topic-list space-y-2">
+                    <!-- Gerado por JS -->
+                </div>
+            </section>
+
+            <!-- Conhecimentos Específicos -->
+            <section id="especificos" class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-purple-500 pb-2">🩺 Conhecimentos Específicos</h2>
+                <div class="topic-list space-y-2">
+                    <!-- Gerado por JS -->
+                </div>
+            </section>
+        </main>
+        
+        <footer class="text-center mt-12 text-gray-500 text-sm">
+            <p>Seu progresso é salvo automaticamente no navegador deste dispositivo.</p>
+            <p>&copy; 2024 - Ferramenta de Estudos para Concursos. Todos os direitos reservados.</p>
+        </footer>
+    </div>
+
+    <!-- Modal de Flashcards -->
+    <div id="flashcardModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn float-right text-2xl font-bold cursor-pointer text-gray-500 hover:text-gray-800">&times;</span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Flashcards</h2>
+            <div id="flashcard-creator" class="mb-6">
+                <h3 class="font-semibold mb-2">Criar novo flashcard:</h3>
+                <input id="flashcard-front" type="text" placeholder="Frente (Pergunta/Conceito)" class="w-full p-2 border rounded mb-2">
+                <textarea id="flashcard-back" placeholder="Verso (Resposta/Definição)" class="w-full p-2 border rounded mb-2"></textarea>
+                <button id="addFlashcard" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Adicionar</button>
+            </div>
+            <div id="flashcard-viewer" class="hidden">
+                 <div id="flashcard-container" class="card h-64 mb-4">
+                    <div class="card-inner">
+                        <div class="card-face card-front"><p id="card-front-text"></p></div>
+                        <div class="card-face card-back"><p id="card-back-text"></p></div>
+                    </div>
+                </div>
+                <p class="text-center text-sm text-gray-500 mb-4">Clique no card para virar.</p>
+                <div class="flex justify-between items-center">
+                    <button id="prevCard" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Anterior</button>
+                    <span id="cardCounter"></span>
+                    <button id="nextCard" class="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Próximo</button>
+                </div>
+                 <button id="deleteCard" class="w-full mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Excluir Card Atual</button>
+            </div>
+            <p id="no-cards-msg" class="text-center text-gray-500">Nenhum flashcard criado ainda. Comece adicionando um!</p>
+        </div>
+    </div>
+
+    <!-- Modal de Lembretes -->
+    <div id="notesModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn float-right text-2xl font-bold cursor-pointer text-gray-500 hover:text-gray-800">&times;</span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800">Lembretes (Post-its)</h2>
+            <div class="mb-4">
+                 <textarea id="note-input" placeholder="Escreva seu lembrete aqui..." class="w-full p-3 border rounded-lg h-32"></textarea>
+                 <button id="addNote" class="mt-2 bg-yellow-400 text-gray-800 px-4 py-2 rounded-lg hover:bg-yellow-500 font-semibold">Salvar Lembrete</button>
+            </div>
+            <div id="notes-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Notas salvas aqui -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const topics = {
+                portugues: [
+                    "Compreensão e Interpretação de Textos",
+                    "Tipologia e Gêneros Textuais",
+                    "Ortografia Oficial e Acentuação Gráfica",
+                    "Morfologia: Classes de Palavras",
+                    "Sintaxe: Frase, Oração e Período",
+                    "Termos da Oração: Sujeito e Predicado",
+                    "Concordância Verbal e Nominal",
+                    "Regência Verbal e Nominal",
+                    "Uso da Crase",
+                    "Pontuação",
+                    "Significação das Palavras (Sinônimos, Antônimos)",
+                ],
+                informatica: [
+                    "Conceitos Básicos de Hardware e Software",
+                    "Sistema Operacional Windows (geral)",
+                    "Editores de Texto (MS Word / LibreOffice Writer)",
+                    "Planilhas Eletrônicas (MS Excel / LibreOffice Calc)",
+                    "Software de Apresentação (MS PowerPoint / Impress)",
+                    "Internet: Navegadores e Conceitos",
+                    "Correio Eletrônico (E-mail)",
+                    "Segurança da Informação (Vírus, Antivírus, Backup)",
+                ],
+                especificos: [
+                    "Princípios e Diretrizes do SUS (Sistema Único de Saúde)",
+                    "Lei nº 8.080/90 - Lei Orgânica da Saúde",
+                    "Lei nº 8.142/90 - Participação da Comunidade no SUS",
+                    "Constituição Federal (Artigos 196 a 200)",
+                    "Política Nacional de Atenção Básica (PNAB)",
+                    "Atribuições do Agente Comunitário de Saúde (ACS)",
+                    "Cadastramento e Visita Domiciliar",
+                    "Mapeamento e Territorialização",
+                    "Ações de Educação em Saúde e Prevenção",
+                    "Saúde da Criança e do Adolescente",
+                    "Saúde da Mulher e Pré-natal",
+                    "Saúde do Adulto e do Idoso",
+                    "Doenças Transmissíveis (Dengue, Zika, Chikungunya)",
+                    "Controle de Endemias",
+                    "Doenças Crônicas (Hipertensão e Diabetes)",
+                    "Imunização e Calendário Nacional de Vacinação",
+                    "Saneamento Básico e Meio Ambiente",
+                    "Processo de Trabalho do ACS e da Equipe de Saúde da Família",
+                ]
+            };
+
+            let studyState = JSON.parse(localStorage.getItem('studyStateACS')) || {};
+            let flashcards = JSON.parse(localStorage.getItem('flashcardsACS')) || [];
+            let notes = JSON.parse(localStorage.getItem('notesACS')) || [];
+            let currentCardIndex = 0;
+
+            function renderTopics() {
+                Object.keys(topics).forEach(category => {
+                    const container = document.querySelector(`#${category} .topic-list`);
+                    container.innerHTML = '';
+                    topics[category].forEach((topic, index) => {
+                        const topicId = `${category}-${index}`;
+                        const isChecked = studyState[topicId] || false;
+                        container.innerHTML += `
+                            <div>
+                                <input type="checkbox" id="${topicId}" ${isChecked ? 'checked' : ''}>
+                                <label for="${topicId}">
+                                    <span class="checkbox-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                    </span>
+                                    ${topic}
+                                </label>
+                            </div>
+                        `;
+                    });
+                });
+                addCheckboxListeners();
+                updateProgress();
+            }
+
+            function addCheckboxListeners() {
+                document.querySelectorAll('.topic-list input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', (e) => {
+                        studyState[e.target.id] = e.target.checked;
+                        localStorage.setItem('studyStateACS', JSON.stringify(studyState));
+                        updateProgress();
+                    });
+                });
+            }
+
+            function updateProgress() {
+                const allCheckboxes = document.querySelectorAll('.topic-list input[type="checkbox"]');
+                const checkedCount = Object.values(studyState).filter(Boolean).length;
+                const totalCount = allCheckboxes.length;
+                const percentage = totalCount > 0 ? Math.round((checkedCount / totalCount) * 100) : 0;
+                
+                const progressBar = document.getElementById('progressBar');
+                progressBar.style.width = `${percentage}%`;
+                progressBar.textContent = `${percentage}%`;
+            }
+
+            // --- Modal Logic ---
+            const flashcardModal = document.getElementById('flashcardModal');
+            const notesModal = document.getElementById('notesModal');
+            const flashcardBtn = document.getElementById('flashcardBtn');
+            const notesBtn = document.getElementById('notesBtn');
+            const closeBtns = document.querySelectorAll('.close-btn');
+
+            flashcardBtn.onclick = () => { flashcardModal.style.display = 'block'; renderFlashcards(); }
+            notesBtn.onclick = () => { notesModal.style.display = 'block'; renderNotes(); }
+            closeBtns.forEach(btn => btn.onclick = () => {
+                flashcardModal.style.display = 'none';
+                notesModal.style.display = 'none';
+            });
+            window.onclick = (event) => {
+                if (event.target == flashcardModal) flashcardModal.style.display = 'none';
+                if (event.target == notesModal) notesModal.style.display = 'none';
+            }
+
+            // --- Flashcard Logic ---
+            const addFlashcardBtn = document.getElementById('addFlashcard');
+            const flashcardFrontInput = document.getElementById('flashcard-front');
+            const flashcardBackInput = document.getElementById('flashcard-back');
+            const flashcardViewer = document.getElementById('flashcard-viewer');
+            const noCardsMsg = document.getElementById('no-cards-msg');
+            const cardFrontText = document.getElementById('card-front-text');
+            const cardBackText = document.getElementById('card-back-text');
+            const cardCounter = document.getElementById('cardCounter');
+            const flashcardContainer = document.getElementById('flashcard-container');
+
+            addFlashcardBtn.addEventListener('click', () => {
+                const front = flashcardFrontInput.value.trim();
+                const back = flashcardBackInput.value.trim();
+                if (front && back) {
+                    flashcards.push({ front, back });
+                    localStorage.setItem('flashcardsACS', JSON.stringify(flashcards));
+                    flashcardFrontInput.value = '';
+                    flashcardBackInput.value = '';
+                    renderFlashcards();
+                }
+            });
+
+            function renderFlashcards() {
+                if (flashcards.length > 0) {
+                    flashcardViewer.style.display = 'block';
+                    noCardsMsg.style.display = 'none';
+                    showCard(currentCardIndex);
+                } else {
+                    flashcardViewer.style.display = 'none';
+                    noCardsMsg.style.display = 'block';
+                }
+            }
+            
+            function showCard(index) {
+                if (flashcards.length === 0) {
+                    renderFlashcards();
+                    return;
+                }
+                // Garante que o índice seja circular
+                currentCardIndex = (index + flashcards.length) % flashcards.length;
+
+                const card = flashcards[currentCardIndex];
+                cardFrontText.textContent = card.front;
+                cardBackText.textContent = card.back;
+                cardCounter.textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
+                flashcardContainer.classList.remove('is-flipped');
+            }
+
+            flashcardContainer.addEventListener('click', () => {
+                flashcardContainer.classList.toggle('is-flipped');
+            });
+
+            document.getElementById('nextCard').addEventListener('click', () => {
+                if (flashcards.length > 0) showCard(currentCardIndex + 1);
+            });
+
+            document.getElementById('prevCard').addEventListener('click', () => {
+                if (flashcards.length > 0) showCard(currentCardIndex - 1);
+            });
+
+            document.getElementById('deleteCard').addEventListener('click', () => {
+                if (flashcards.length > 0) {
+                    flashcards.splice(currentCardIndex, 1);
+                    localStorage.setItem('flashcardsACS', JSON.stringify(flashcards));
+                    if (currentCardIndex >= flashcards.length) {
+                        currentCardIndex = 0;
+                    }
+                    renderFlashcards();
+                }
+            });
+
+
+            // --- Notes Logic ---
+            const addNoteBtn = document.getElementById('addNote');
+            const noteInput = document.getElementById('note-input');
+            const notesContainer = document.getElementById('notes-container');
+
+            addNoteBtn.addEventListener('click', () => {
+                const noteText = noteInput.value.trim();
+                if (noteText) {
+                    notes.push(noteText);
+                    localStorage.setItem('notesACS', JSON.stringify(notes));
+                    noteInput.value = '';
+                    renderNotes();
+                }
+            });
+
+            function renderNotes() {
+                notesContainer.innerHTML = '';
+                notes.forEach((note, index) => {
+                    const noteEl = document.createElement('div');
+                    noteEl.className = 'post-it p-4 relative';
+                    noteEl.innerHTML = `
+                        <p class="whitespace-pre-wrap break-words">${note}</p>
+                        <button data-index="${index}" class="delete-note-btn absolute top-1 right-1 text-red-600 hover:text-red-800 font-bold">X</button>
+                    `;
+                    notesContainer.appendChild(noteEl);
+                });
+                addDeleteNoteListeners();
+            }
+
+            function addDeleteNoteListeners() {
+                document.querySelectorAll('.delete-note-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = e.target.dataset.index;
+                        notes.splice(index, 1);
+                        localStorage.setItem('notesACS', JSON.stringify(notes));
+                        renderNotes();
+                    });
+                });
+            }
+
+            // Initial Load
+            renderTopics();
+        });
+    </script>
+</body>
+</html>
